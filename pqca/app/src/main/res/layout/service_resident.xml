@@ -3,17 +3,277 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="match_parent">
 
     <Button
-        android:id="@+id/testBtn"
+        android:id="@+id/clearBtn"
+        android:layout_width="0dp"
+        android:layout_height="30dp"
+        android:background="@color/buttonBG"
+        android:text="@string/clear_text"
+        android:textSize="14sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/captureBtn"
+        android:layout_width="0dp"
+        android:layout_height="30dp"
+        android:layout_marginStart="4dp"
+        android:background="@color/buttonBG"
+        android:text="@string/capture_text"
+        android:textSize="14sp"
+        app:layout_constraintStart_toEndOf="@+id/clearBtn"
+        app:layout_constraintTop_toTopOf="@+id/clearBtn" />
+
+    <Button
+        android:id="@+id/minimizeBtn"
+        android:layout_width="0dp"
+        android:layout_height="30dp"
+        android:layout_marginStart="4dp"
+        android:background="@color/buttonBG"
+        android:text="@string/minimize_text"
+        android:textSize="14sp"
+        app:layout_constraintStart_toEndOf="@+id/captureBtn"
+        app:layout_constraintTop_toTopOf="@+id/captureBtn" />
+
+    <Button
+        android:id="@+id/endBtn"
+        android:layout_width="0dp"
+        android:layout_height="30dp"
+        android:layout_marginStart="4dp"
+        android:background="@color/buttonBG"
+        android:text="@string/end_text"
+        android:textSize="14sp"
+        app:layout_constraintStart_toEndOf="@+id/minimizeBtn"
+        app:layout_constraintTop_toTopOf="@+id/minimizeBtn" />
+
+    <RadioGroup
+        android:id="@+id/ftmGroup"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:layout_marginBottom="16dp"
-        android:text="@string/test_text"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:background="@color/buttonBG"
+        android:orientation="horizontal"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/clearBtn">
+
+        <RadioButton
+            android:id="@+id/ftm1xRdo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="@string/ftm1x_text"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <RadioButton
+            android:id="@+id/ftm4xRdo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:text="@string/ftm4x_text"
+            app:layout_constraintStart_toEndOf="@+id/ftm1xRdo"
+            app:layout_constraintTop_toTopOf="@+id/ftm1xRdo" />
+
+        <RadioButton
+            android:id="@+id/ftm5xRdo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:text="@string/ftm5x_text"
+            app:layout_constraintStart_toEndOf="@+id/ftm4xRdo"
+            app:layout_constraintTop_toTopOf="@+id/ftm4xRdo" />
+
+        <RadioButton
+            android:id="@+id/ftm6xRdo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:text="@string/ftm6x_text"
+            app:layout_constraintStart_toEndOf="@+id/ftm5xRdo"
+            app:layout_constraintTop_toTopOf="@+id/ftm5xRdo" />
+    </RadioGroup>
+
+    <RadioGroup
+        android:id="@+id/wildGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:background="@color/buttonBG"
+        android:orientation="horizontal"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/ftmGroup">
+
+        <RadioButton
+            android:id="@+id/wildOffRdo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="@string/wildOff_text"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <RadioButton
+            android:id="@+id/wildOnRdo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:text="@string/wildOn_text"
+            app:layout_constraintStart_toEndOf="@+id/wildOffRdo"
+            app:layout_constraintTop_toTopOf="@+id/wildOffRdo" />
+
+    </RadioGroup>
+
+    <RadioGroup
+        android:id="@+id/maxtraceGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:background="@color/buttonBG"
+        android:orientation="horizontal"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/wildGroup">
+
+        <RadioButton
+            android:id="@+id/maxtrace3Rdo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/maxTrace3_text"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <RadioButton
+            android:id="@+id/maxtrace4Rdo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:text="@string/maxTrace4_text"
+            app:layout_constraintStart_toEndOf="@+id/maxtrace3Rdo"
+            app:layout_constraintTop_toTopOf="@+id/maxtrace3Rdo" />
+
+        <RadioButton
+            android:id="@+id/maxtrace5Rdo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:checked="true"
+            android:text="@string/maxTrace5_text"
+            app:layout_constraintStart_toEndOf="@+id/maxtrace4Rdo"
+            app:layout_constraintTop_toTopOf="@+id/maxtrace4Rdo" />
+
+        <RadioButton
+            android:id="@+id/maxtrace8Rdo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:text="@string/maxTrace8_text"
+            app:layout_constraintStart_toEndOf="@+id/maxtrace5Rdo"
+            app:layout_constraintTop_toTopOf="@+id/maxtrace5Rdo" />
+
+        <RadioButton
+            android:id="@+id/maxtrace10Rdo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:text="@string/maxTrace10_text"
+            app:layout_constraintStart_toEndOf="@+id/maxtrace8Rdo"
+            app:layout_constraintTop_toTopOf="@+id/maxtrace8Rdo" />
+
+        <RadioButton
+            android:id="@+id/maxtrace12Rdo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:text="@string/maxTrace12_text"
+            app:layout_constraintStart_toEndOf="@+id/maxtrace10Rdo"
+            app:layout_constraintTop_toTopOf="@+id/maxtrace10Rdo" />
+    </RadioGroup>
+
+    <RadioGroup
+        android:id="@+id/solutionGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:background="@color/buttonBG"
+        android:orientation="horizontal"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/maxtraceGroup">
+
+        <RadioButton
+            android:id="@+id/exactRdo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="@string/exact_text"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <RadioButton
+            android:id="@+id/heuristicRdo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:text="@string/heuristic_text"
+            app:layout_constraintStart_toEndOf="@+id/exactRdo"
+            app:layout_constraintTop_toTopOf="@+id/exactRdo" />
+
+    </RadioGroup>
+
+    <ToggleButton
+        android:id="@+id/redTog"
+        android:layout_width="60dp"
+        android:layout_height="30dp"
+        android:layout_marginTop="4dp"
+        android:background="@color/buttonBG"
+        android:checked="true"
+        android:textOff="@string/red_text_off"
+        android:textOn="@string/red_text_on"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/solutionGroup" />
+
+    <ToggleButton
+        android:id="@+id/blueTog"
+        android:layout_width="60dp"
+        android:layout_height="30dp"
+        android:layout_marginStart="4dp"
+        android:background="@color/buttonBG"
+        android:checked="true"
+        android:textOff="@string/blue_text_off"
+        android:textOn="@string/blue_text_on"
+        app:layout_constraintStart_toEndOf="@+id/redTog"
+        app:layout_constraintTop_toTopOf="@+id/redTog" />
+
+    <ToggleButton
+        android:id="@+id/greenTog"
+        android:layout_width="60dp"
+        android:layout_height="30dp"
+        android:layout_marginStart="4dp"
+        android:background="@color/buttonBG"
+        android:checked="true"
+        android:textOff="@string/green_text_off"
+        android:textOn="@string/green_text_on"
+        app:layout_constraintStart_toEndOf="@+id/blueTog"
+        app:layout_constraintTop_toTopOf="@+id/blueTog" />
+
+    <ToggleButton
+        android:id="@+id/yellowTog"
+        android:layout_width="60dp"
+        android:layout_height="30dp"
+        android:layout_marginStart="4dp"
+        android:background="@color/buttonBG"
+        android:checked="true"
+        android:textOff="@string/yellow_text_off"
+        android:textOn="@string/yellow_text_on"
+        app:layout_constraintStart_toEndOf="@+id/greenTog"
+        app:layout_constraintTop_toTopOf="@+id/greenTog" />
+
+    <ToggleButton
+        android:id="@+id/purpleTog"
+        android:layout_width="60dp"
+        android:layout_height="30dp"
+        android:layout_marginStart="4dp"
+        android:background="@color/buttonBG"
+        android:checked="true"
+        android:textOff="@string/purple_text_off"
+        android:textOn="@string/purple_text_on"
+        app:layout_constraintStart_toEndOf="@+id/yellowTog"
+        app:layout_constraintTop_toTopOf="@+id/yellowTog" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -4,7 +4,6 @@ import android.content.Intent
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.os.Message
 import android.provider.Settings
 import android.view.Gravity
 import android.widget.Toast
@@ -34,7 +33,6 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, ResidentService::class.java)
             toastMake(getString(R.string.start_toast))
             startForegroundService(intent)
-            moveTaskToBack(true)
         }
 
         // 常駐終了ボタン
@@ -48,9 +46,9 @@ class MainActivity : AppCompatActivity() {
         minimizeBtn.setOnClickListener {
             moveTaskToBack(true)
         }
-
     }
 
+    // トーストの表示
     private fun toastMake(message: String) {
         val toast = Toast.makeText(applicationContext, message, Toast.LENGTH_SHORT)
         toast.setGravity(Gravity.CENTER, 0, 700)
