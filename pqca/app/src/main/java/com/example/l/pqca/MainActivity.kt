@@ -1,58 +1,199 @@
 package com.example.l.pqca
 
+import android.app.Service
+import android.content.ContentValues
+import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.PixelFormat
+import android.hardware.display.DisplayManager
+import android.hardware.display.VirtualDisplay
+import android.media.ImageReader
+import android.media.projection.MediaProjection
+import android.media.projection.MediaProjectionManager
 import android.net.Uri
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Environment
+import android.provider.MediaStore
 import android.provider.Settings
+import android.util.DisplayMetrics
 import android.view.Gravity
-import android.widget.Toast
+import android.view.WindowManager
+import android.widget.ImageView
+import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
+import java.io.File
+import java.io.FileOutputStream
+import java.nio.Buffer
 
 class MainActivity : AppCompatActivity() {
 
     companion object {
-        private const val REQUEST_OVERLAY_PERMISSION = 1    // 何でもいいらしい？
+        private const val REQUEST_OVERLAY_PERMISSION = 1
+        private const val REQUEST_CAPTURE = 2
+    }
+    private lateinit var mediaProjectionManager: MediaProjectionManager
+    private lateinit var projection: MediaProjection
+    private lateinit var imageReader: ImageReader
+    private lateinit var virtualDisplay: VirtualDisplay
+    private var dpScale = 0
+    private var screenDensity = 0
+    private var displayWidth = 0
+    private var displayHeight = 0
+    private lateinit var imageView: ImageView
+    private lateinit var residentWindowManager: WindowManager
+    private lateinit var transparencyWindowManager: WindowManager
+    private lateinit var residentFragment: ResidentFragment
+    private lateinit var transparencyFragment: TransparencyFragment
+    private var isResidentAttach = false
+    private var isTransparencyAttach = false
+
+    // 画面の縦横サイズとdpを取得
+    private fun checkDisplaySize() {
+        val displayMetrics = DisplayMetrics()
+        windowManager.defaultDisplay.getMetrics(displayMetrics)
+        dpScale = resources.displayMetrics.density.toInt()
+        screenDensity = displayMetrics.densityDpi
+        displayWidth = displayMetrics.widthPixels
+        displayHeight = displayMetrics.heightPixels
     }
 
-    // オーバーレイ権限の確認
+    // オーバーレイ・プロジェクション権限の確認
     private fun checkPermission() {
+        // オーバーレイ
         if (!Settings.canDrawOverlays(this)) {
-            val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName"))
-            startActivityForResult(intent, Companion.REQUEST_OVERLAY_PERMISSION)
+            val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:${this.packageName}"))
+            startActivityForResult(intent, REQUEST_OVERLAY_PERMISSION)
         }
+        // メディアプロジェクション
+        mediaProjectionManager = getSystemService(Service.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+        startActivityForResult(mediaProjectionManager.createScreenCaptureIntent(), REQUEST_CAPTURE)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        checkDisplaySize()
         checkPermission()
 
         // 常駐開始ボタン
         startBtn.setOnClickListener {
-            val intent = Intent(this, ResidentService::class.java)
-            toastMake(getString(R.string.start_toast))
-            startForegroundService(intent)
+            openResidentWindow()
         }
 
         // 常駐終了ボタン
         endBtn.setOnClickListener {
-            val intent = Intent(this, ResidentService::class.java)
-            toastMake(getString(R.string.end_toast))
-            stopService(intent)
+            closeResidentWindow()
+            closeTransparencyWindow()
         }
 
         // 最小化ボタン
         minimizeBtn.setOnClickListener {
             moveTaskToBack(true)
         }
+
+        // imageView
+        imageView = findViewById(R.id.imageView)
     }
 
-    // トーストの表示
-    private fun toastMake(message: String) {
-        val toast = Toast.makeText(applicationContext, message, Toast.LENGTH_SHORT)
-        toast.setGravity(Gravity.CENTER, 0, 700)
-        toast.show()
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == com.example.l.pqca.MainActivity.Companion.REQUEST_CAPTURE) {
+            if (resultCode == RESULT_OK) {
+                projection = mediaProjectionManager.getMediaProjection(resultCode, data)
+                imageReader = ImageReader.newInstance(
+                    displayWidth,
+                    displayHeight, PixelFormat.RGBA_8888, 2)
+                virtualDisplay = projection.createVirtualDisplay(
+                    "ScreenCapture",
+                    displayWidth, displayHeight, screenDensity,
+                    DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
+                    imageReader.surface, null, null)
+            }
+        }
     }
 
+    // 常駐ウインドウを開く
+    fun openResidentWindow() {
+        if (Settings.canDrawOverlays(this) && !isResidentAttach) {
+            residentWindowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
+            val params = WindowManager.LayoutParams(
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                        WindowManager.LayoutParams.FLAG_FULLSCREEN or
+                        WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+                PixelFormat.TRANSLUCENT
+            )
+            params.gravity = Gravity.TOP or Gravity.START
+            params.x = 20 * dpScale
+            params.y = 135 * dpScale
+
+            residentFragment = ResidentFragment()
+            residentWindowManager.addView(residentFragment.loadView(this), params)
+            isResidentAttach = true
+        }
+    }
+
+    // 常駐ウインドウを閉じる
+    fun closeResidentWindow() {
+        if (isResidentAttach) {
+            residentWindowManager.removeView(residentFragment.residentView)
+            isResidentAttach = false
+        }
+    }
+
+    // 透明ウインドウを開く
+    fun openTransparencyWindow() {
+        if (Settings.canDrawOverlays(this) && !isTransparencyAttach) {
+            transparencyWindowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
+            val params = WindowManager.LayoutParams(
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                        WindowManager.LayoutParams.FLAG_FULLSCREEN or
+                        WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+                PixelFormat.TRANSLUCENT
+            )
+            params.gravity = Gravity.TOP or Gravity.START
+            params.y = 170 * dpScale
+
+            transparencyFragment = TransparencyFragment()
+            transparencyWindowManager.addView(transparencyFragment.loadView(this), params)
+            isTransparencyAttach = true
+        }
+    }
+
+    // 透明ウインドウを閉じる
+    fun closeTransparencyWindow() {
+        if (isTransparencyAttach) {
+            transparencyWindowManager.removeView(transparencyFragment.transparencyView)
+            isTransparencyAttach = false
+        }
+    }
+
+    // SS撮影
+    fun getScreenShot(): ImageView {
+        val image = imageReader.acquireLatestImage()
+        val planes = image.planes
+        val buffer = planes[0].buffer
+        val pixelStride = planes[0].pixelStride
+        val rowStride = planes[0].rowStride
+        val rowPadding = rowStride - pixelStride * displayWidth
+        val bitmap = Bitmap.createBitmap(
+            displayWidth + rowPadding / pixelStride,
+            displayHeight, Bitmap.Config.ARGB_8888)
+        bitmap.copyPixelsFromBuffer(buffer)
+        image.close()
+        imageView.setImageBitmap(bitmap)
+        return imageView
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        closeResidentWindow()
+        virtualDisplay.release()
+    }
 }
