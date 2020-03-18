@@ -1,10 +1,10 @@
 package com.example.l.pqca
 
 import android.app.Service
-import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.graphics.PixelFormat
 import android.hardware.display.DisplayManager
 import android.hardware.display.VirtualDisplay
@@ -13,18 +13,14 @@ import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
 import android.net.Uri
 import android.os.Bundle
-import android.os.Environment
-import android.provider.MediaStore
 import android.provider.Settings
 import android.util.DisplayMetrics
+import android.util.Log
 import android.view.Gravity
 import android.view.WindowManager
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
-import java.io.File
-import java.io.FileOutputStream
-import java.nio.Buffer
 
 class MainActivity : AppCompatActivity() {
 
@@ -187,9 +183,45 @@ class MainActivity : AppCompatActivity() {
             displayHeight, Bitmap.Config.ARGB_8888)
         bitmap.copyPixelsFromBuffer(buffer)
         image.close()
-        imageView.setImageBitmap(bitmap)
+        imageView.setImageBitmap(trimming(bitmap))
         return imageView
     }
+
+    // SSの切り出し
+    private fun trimming(bitmap: Bitmap): Bitmap {
+        val boardStart = 1076
+        val width = displayWidth
+        val height = 777
+        var trimmedBitmap = Bitmap.createBitmap(bitmap, 0, boardStart, width, height, null ,true)
+        trimmedBitmap = getColorTest(trimmedBitmap)
+        return trimmedBitmap
+        // SSのサイズは1080*2160
+        // 盤面は1147～1973 826
+    }
+
+    private fun getColorTest(bitmap: Bitmap): Bitmap {
+        val width = bitmap.width
+        val height = bitmap.height
+        val pixels = IntArray(width*height)
+        bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
+        for(h in 0 until height) {
+            for (w in 0 until width) {
+                    val pixel = pixels[widthLine]
+                    pixels[widthLine] = Color.argb(
+                        Color.alpha(pixel),
+                        Color.red(255),
+                        Color.green(255),
+                        Color.blue(255)
+                    )
+            }
+        }
+        bitmap.setPixels(pixels, 0, width, 0, 0, width, height)
+        return bitmap
+    }
+    /*
+    70 205 340 475 610 745 880 1015
+
+     */
 
     override fun onDestroy() {
         super.onDestroy()
