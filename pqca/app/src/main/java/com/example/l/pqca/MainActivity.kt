@@ -1,6 +1,7 @@
 package com.example.l.pqca
 
 import android.app.Service
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -13,14 +14,19 @@ import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
 import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
+import android.provider.MediaStore
 import android.provider.Settings
 import android.util.DisplayMetrics
-import android.util.Log
 import android.view.Gravity
 import android.view.WindowManager
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
+import java.io.File
+import java.io.FileOutputStream
+import java.text.SimpleDateFormat
+import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
@@ -51,10 +57,10 @@ class MainActivity : AppCompatActivity() {
         dpScale = resources.displayMetrics.density.toInt()
         screenDensity = displayMetrics.densityDpi
         displayWidth = displayMetrics.widthPixels
-        displayHeight = displayMetrics.heightPixels
+        displayHeight = 2160
     }
 
-    // オーバーレイ・プロジェクション権限の確認
+    // 権限の確認
     private fun checkPermission() {
         // オーバーレイ
         if (!Settings.canDrawOverlays(this)) {
@@ -99,7 +105,7 @@ class MainActivity : AppCompatActivity() {
                 projection = mediaProjectionManager.getMediaProjection(resultCode, data)
                 imageReader = ImageReader.newInstance(
                     displayWidth,
-                    displayHeight, PixelFormat.RGBA_8888, 2)
+                    displayHeight, PixelFormat.RGBA_8888, 1)
                 virtualDisplay = projection.createVirtualDisplay(
                     "ScreenCapture",
                     displayWidth, displayHeight, screenDensity,
@@ -171,7 +177,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     // SS撮影
-    fun getScreenShot(): ImageView {
+    fun getScreenShot(): Bitmap {
         val image = imageReader.acquireLatestImage()
         val planes = image.planes
         val buffer = planes[0].buffer
@@ -183,22 +189,22 @@ class MainActivity : AppCompatActivity() {
             displayHeight, Bitmap.Config.ARGB_8888)
         bitmap.copyPixelsFromBuffer(buffer)
         image.close()
-        imageView.setImageBitmap(trimming(bitmap))
-        return imageView
+        val trimmedBitmap = trimming((bitmap))
+        imageView.setImageBitmap(trimmedBitmap)
+        return trimmedBitmap
     }
 
     // SSの切り出し
     private fun trimming(bitmap: Bitmap): Bitmap {
-        val boardStart = 1076
+        val boardStart = 1147
         val width = displayWidth
-        val height = 777
-        var trimmedBitmap = Bitmap.createBitmap(bitmap, 0, boardStart, width, height, null ,true)
-        trimmedBitmap = getColorTest(trimmedBitmap)
-        return trimmedBitmap
+        val height = 826
+        return Bitmap.createBitmap(bitmap, 0, boardStart, width, height, null ,true)
         // SSのサイズは1080*2160
         // 盤面は1147～1973 826
     }
 
+    // デバッグ用 ピクセル単位の処理
     private fun getColorTest(bitmap: Bitmap): Bitmap {
         val width = bitmap.width
         val height = bitmap.height
@@ -206,22 +212,49 @@ class MainActivity : AppCompatActivity() {
         bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
         for(h in 0 until height) {
             for (w in 0 until width) {
-                    val pixel = pixels[widthLine]
-                    pixels[widthLine] = Color.argb(
-                        Color.alpha(pixel),
-                        Color.red(255),
-                        Color.green(255),
-                        Color.blue(255)
-                    )
+                    if ((w % 135 == 75) or (h % 126 == 58)) {
+                        val number = w + h * width
+                        val pixel = pixels[number]
+                        pixels[number] = Color.argb(
+                            Color.alpha(pixel),
+                            Color.red(0),
+                            Color.green(0),
+                            Color.blue(0)
+                        )
+                    }
             }
         }
         bitmap.setPixels(pixels, 0, width, 0, 0, width, height)
+        saveBitmap(bitmap)
         return bitmap
     }
-    /*
-    70 205 340 475 610 745 880 1015
 
-     */
+    // デバッグ用 取得したSSの保存
+    private fun saveBitmap(bitmap: Bitmap) {
+        // パーミッション取得処理をしていない
+        // 使用時にはAndroidManifestに <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/> を記載したのちに、
+        // 設定からストレージへの権限を付与すること
+        val dir = "/pqacImage"
+        val file = File(Environment.getExternalStorageDirectory().path + dir)
+        if(!file.exists()) file.mkdir()
+
+        val date = Date()
+        val fileNameDate = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.JAPAN)
+        val fileName = fileNameDate.format(date) + ".jpg"
+        val attachName = file.absolutePath + "/" + fileName
+
+        val fos = FileOutputStream(attachName)
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos)
+        fos.flush()
+        fos.close()
+
+        val values = ContentValues()
+        val resolver = contentResolver
+        values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+        values.put(MediaStore.Images.Media.TITLE, fileName)
+        values.put("_data", attachName)
+        resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+    }
 
     override fun onDestroy() {
         super.onDestroy()
