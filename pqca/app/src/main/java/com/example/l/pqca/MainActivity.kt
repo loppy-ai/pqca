@@ -189,9 +189,7 @@ class MainActivity : AppCompatActivity() {
             displayHeight, Bitmap.Config.ARGB_8888)
         bitmap.copyPixelsFromBuffer(buffer)
         image.close()
-        val trimmedBitmap = trimming((bitmap))
-        imageView.setImageBitmap(trimmedBitmap)
-        return trimmedBitmap
+        return trimming((bitmap))
     }
 
     // SSの切り出し

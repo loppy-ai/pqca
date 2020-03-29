@@ -5,6 +5,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.Button
 import androidx.fragment.app.Fragment
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 
 class ResidentFragment : Fragment() {
     private lateinit var mainActivity: MainActivity
@@ -26,24 +28,15 @@ class ResidentFragment : Fragment() {
         // SS取得ボタン
         residentView.findViewById<Button>(R.id.captureBtn).setOnClickListener {
             // 画像取得
-/*
-            TODO 時間差で2枚撮った差分を見てチャンスぷよかどうかを判断したい
-            var bitmap1: Bitmap
-            var bitmap2: Bitmap
-            val thread = Thread(Runnable {
-                try {
-                    bitmap1 = mainActivity.getScreenShot()
-                    Thread.sleep(500)
-                    bitmap2 = mainActivity.getScreenShot()
-                }catch (e: InterruptedException) {
-                    e.printStackTrace()
-                }
-            })
-            thread.start()
- */
-            val bitmap = mainActivity.getScreenShot()
+            lateinit var bitmap1: Bitmap
+            lateinit var bitmap2: Bitmap
+            runBlocking {
+                bitmap1 = mainActivity.getScreenShot()
+                delay(250)
+                bitmap2 = mainActivity.getScreenShot()
+            }
             // 盤面情報に変換
-            val board = Board(bitmap)
+            val board = Board(bitmap1, bitmap2)
             val next = board.getNext()
             val now = board.getNow()
             // 盤面情報の解析
