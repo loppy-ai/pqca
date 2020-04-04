@@ -40,6 +40,7 @@ class ResidentFragment : Fragment() {
             val next = board.getNext()
             val now = board.getNow()
             // 盤面情報の解析
+
             // 解析結果の表示
         }
         // 透明化ボタン

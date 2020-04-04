@@ -53,16 +53,16 @@ class Board(bitmap1: Bitmap, bitmap2: Bitmap){
         val checkArray = checkIsChance(nextBoardPixelColor1, nextBoardPixelColor2)
         for (i in nextBoardPixelColor1.indices) {
             if (checkArray[i]) {
-                // チャンスぷよ/プリズムボールである
+                // チャンスぷよである
                 val colorRed1 = Color.red(nextBoardPixelColor1[i])
                 val colorGreen1 = Color.green(nextBoardPixelColor1[i])
                 val colorBlue1 = Color.blue(nextBoardPixelColor1[i])
                 val colorRed2 = Color.red(nextBoardPixelColor2[i])
                 val colorGreen2 = Color.green(nextBoardPixelColor2[i])
                 val colorBlue2 = Color.blue(nextBoardPixelColor2[i])
-                //Log.d("next$i RGB Data1", "$colorRed1 $colorGreen1 $colorBlue1")
-                //Log.d("next$i RGB Data2", "$colorRed2 $colorGreen2 $colorBlue2")
-                //Log.d("border..........", "-----------")
+                // Log.d("next$i RGB Data1", "$colorRed1 $colorGreen1 $colorBlue1")
+                // Log.d("next$i RGB Data2", "$colorRed2 $colorGreen2 $colorBlue2")
+                // Log.d("border..........", "-----------")
                 val colorRed = min(colorRed1, colorRed2)
                 val colorGreen = min(colorGreen1, colorGreen2)
                 val colorBlue = min(colorBlue1, colorBlue2)
@@ -93,13 +93,13 @@ class Board(bitmap1: Bitmap, bitmap2: Bitmap){
                     in 0 until 60 ->
                         when (colorBlue) {
                             in   0 until 130 -> nextBoardPuyoColor[i] = 3   // 緑
-                            in 130 ..    255 -> nextBoardPuyoColor[i] = 2   // 青
+                            else             -> nextBoardPuyoColor[i] = 2   // 青
                         }
                     in  60 until 150 -> nextBoardPuyoColor[i] = 5           // 紫
-                    in 150 ..    255 ->
+                    else ->
                         when (colorGreen) {
                             in   0 until  85 -> nextBoardPuyoColor[i] = 1   // 赤
-                            in  85 ..    255 -> nextBoardPuyoColor[i] = 4   // 黄
+                            else             -> nextBoardPuyoColor[i] = 4   // 黄
                         }
                 }
             }
@@ -124,12 +124,33 @@ class Board(bitmap1: Bitmap, bitmap2: Bitmap){
                 val colorRed2 = Color.red(nowBoardPixelColor2[i])
                 val colorGreen2 = Color.green(nowBoardPixelColor2[i])
                 val colorBlue2 = Color.blue(nowBoardPixelColor2[i])
-                Log.d("now$i RGB Data1", "$colorRed1 $colorGreen1 $colorBlue1")
-                Log.d("now$i RGB Data2", "$colorRed2 $colorGreen2 $colorBlue2")
-                Log.d("border.........", "-----------")
+                // Log.d("now$i RGB Data1", "$colorRed1 $colorGreen1 $colorBlue1")
+                // Log.d("now$i RGB Data2", "$colorRed2 $colorGreen2 $colorBlue2")
+                // Log.d("border.........", "-----------")
+                val colorRed = min(colorRed1, colorRed2)
+                val colorGreen = min(colorGreen1, colorGreen2)
+                val colorBlue = min(colorBlue1, colorBlue2)
+                var min = colorRed
+                if (min > colorGreen) min = colorGreen
+                if (min > colorBlue) min = colorBlue
 
-                // TODO 色取得をする
-                // TODO 振り分けアルゴリズムを検討する
+                when (min) {
+                    colorRed   ->
+                        when(colorRed) {
+                            in   0 until 165 -> nowBoardPuyoColor[row][i % 8] = 12          // 青
+                            else             -> nowBoardPuyoColor[row][i % 8] = 16          // プリズム
+                        }
+                    colorGreen -> nowBoardPuyoColor[row][i % 8] = 15                        // 紫
+                    colorBlue  ->
+                        when (colorGreen - colorBlue) {
+                            in   0 until  50 -> nowBoardPuyoColor[row][i % 8] = 11          // 赤
+                            else ->
+                                when (colorRed) {
+                                    in 250 .. 255 -> nowBoardPuyoColor[row][i % 8] = 14     // 黄
+                                    else          -> nowBoardPuyoColor[row][i % 8] = 13     // 緑
+                                }
+                        }
+                }
             }
             else {
                 val colorRed = Color.red(nowBoardPixelColor1[i])
@@ -143,22 +164,26 @@ class Board(bitmap1: Bitmap, bitmap2: Bitmap){
                 // 32 33 34 35 36 37 38 39
                 // 40 41 42 43 44 45 46 47
                 when (colorRed) {
-                    in 0 until 65 -> nowBoardPuyoColor[row][i % 8] = 2                 // 青
-                    in 65 until 210 ->
+                    in   0 until  65 -> nowBoardPuyoColor[row][i % 8] = 2                   // 青
+                    in  65 until 210 ->
                         when (colorBlue) {
-                            in 0 until 100 -> nowBoardPuyoColor[row][i % 8] = 3         // 緑
-                            in 100 until 168 -> nowBoardPuyoColor[row][i % 8] = 7         // 固ぷよ
-                            in 168 until 220 -> nowBoardPuyoColor[row][i % 8] = 6         // おじゃま
-                            in 220..255 -> nowBoardPuyoColor[row][i % 8] = 5         // 紫
+                            in   0 until 100 -> nowBoardPuyoColor[row][i % 8] = 3           // 緑
+                            in 100 until 168 -> nowBoardPuyoColor[row][i % 8] = 7           // 固ぷよ
+                            in 168 until 220 -> nowBoardPuyoColor[row][i % 8] = 6           // おじゃま
+                            else             -> nowBoardPuyoColor[row][i % 8] = 5           // 紫
                         }
-                    in 210..255 ->
+                    else ->
                         when (colorBlue) {
-                            in 0 until 135 ->
+                            in   0 until 135 ->
                                 when (colorGreen) {
-                                    in 0 until 135 -> nowBoardPuyoColor[row][i % 8] = 1 // 赤
-                                    in 135..255 -> nowBoardPuyoColor[row][i % 8] = 4 // 黄
+                                    in   0 until 135 -> nowBoardPuyoColor[row][i % 8] = 1   // 赤
+                                    else             -> nowBoardPuyoColor[row][i % 8] = 4   // 黄
                                 }
-                            in 135..255 -> nowBoardPuyoColor[row][i % 8] = 8         // ハート
+                            in 135 ..    255 ->
+                                when (colorGreen) {
+                                    in   0 until 200 -> nowBoardPuyoColor[row][i % 8] = 8   // ハート
+                                    else             -> nowBoardPuyoColor[row][i % 8] = 16  // プリズム
+                                }
                         }
                 }
             }
@@ -182,6 +207,9 @@ class Board(bitmap1: Bitmap, bitmap2: Bitmap){
             checkArray[i] = !((abs(colorRed1   - colorRed2  ) < threshold) and
                     (abs(colorGreen1 - colorGreen2) < threshold) and
                     (abs(colorBlue1  - colorBlue2 ) < threshold))     // 変化がなければFALSE, 変化があればTRUE
+            //Log.d("now$i RGB Data1", "$colorRed1 $colorGreen1 $colorBlue1")
+            //Log.d("now$i RGB Data2", "$colorRed2 $colorGreen2 $colorBlue2")
+            //Log.d("border.........", "-----------")
         }
         return checkArray
     }
