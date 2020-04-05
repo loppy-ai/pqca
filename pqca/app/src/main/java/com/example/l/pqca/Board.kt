@@ -9,7 +9,7 @@ import kotlin.math.min
 
 class Board(bitmap1: Bitmap, bitmap2: Bitmap){
     private var nextBoardPuyoColor = IntArray(8)
-    private var nowBoardPuyoColor = Array(6) { IntArray(8) }
+    private var nowBoardPuyoColor = IntArray(48)
 
     // インスタンス化した際にbitmapから盤面情報を生成する
     init {
@@ -43,7 +43,7 @@ class Board(bitmap1: Bitmap, bitmap2: Bitmap){
     }
 
     fun getNext(): IntArray = nextBoardPuyoColor
-    fun getNow(): Array<IntArray> = nowBoardPuyoColor
+    fun getNow(): IntArray = nowBoardPuyoColor
 
     // 盤面ごとの色情報→ネクストぷよ種別
     private fun convertNext(nextBoardPixelColor1: IntArray, nextBoardPixelColor2: IntArray) {
@@ -110,13 +110,11 @@ class Board(bitmap1: Bitmap, bitmap2: Bitmap){
 
     // 盤面ごとの色情報→現在ぷよ種別
     private fun convertNow(nowBoardPixelColor1: IntArray, nowBoardPixelColor2: IntArray) {
-        var row = -1
         //  1:赤   2:青   3:緑   4:黄   5:紫
         //  6:邪   7:固   8:ハート
         // 11:赤C 12:青C 13:緑C 14:黄C 15:紫C 16:プリズム
         val checkArray = checkIsChance(nowBoardPixelColor1, nowBoardPixelColor2)
         for (i in nowBoardPixelColor1.indices) {
-            if (i%8 == 0 ) row += 1
             if (checkArray[i]){
                 val colorRed1 = Color.red(nowBoardPixelColor1[i])
                 val colorGreen1 = Color.green(nowBoardPixelColor1[i])
@@ -137,17 +135,17 @@ class Board(bitmap1: Bitmap, bitmap2: Bitmap){
                 when (min) {
                     colorRed   ->
                         when(colorRed) {
-                            in   0 until 165 -> nowBoardPuyoColor[row][i % 8] = 12          // 青
-                            else             -> nowBoardPuyoColor[row][i % 8] = 16          // プリズム
+                            in   0 until 165 -> nowBoardPuyoColor[i] = 12          // 青
+                            else             -> nowBoardPuyoColor[i] = 16          // プリズム
                         }
-                    colorGreen -> nowBoardPuyoColor[row][i % 8] = 15                        // 紫
+                    colorGreen -> nowBoardPuyoColor[i] = 15                        // 紫
                     colorBlue  ->
                         when (colorGreen - colorBlue) {
-                            in   0 until  50 -> nowBoardPuyoColor[row][i % 8] = 11          // 赤
+                            in   0 until  50 -> nowBoardPuyoColor[i] = 11          // 赤
                             else ->
                                 when (colorRed) {
-                                    in 250 .. 255 -> nowBoardPuyoColor[row][i % 8] = 14     // 黄
-                                    else          -> nowBoardPuyoColor[row][i % 8] = 13     // 緑
+                                    in 250 .. 255 -> nowBoardPuyoColor[i] = 14     // 黄
+                                    else          -> nowBoardPuyoColor[i] = 13     // 緑
                                 }
                         }
                 }
@@ -164,32 +162,32 @@ class Board(bitmap1: Bitmap, bitmap2: Bitmap){
                 // 32 33 34 35 36 37 38 39
                 // 40 41 42 43 44 45 46 47
                 when (colorRed) {
-                    in   0 until  65 -> nowBoardPuyoColor[row][i % 8] = 2                   // 青
+                    in   0 until  65 -> nowBoardPuyoColor[i] = 2                   // 青
                     in  65 until 210 ->
                         when (colorBlue) {
-                            in   0 until 100 -> nowBoardPuyoColor[row][i % 8] = 3           // 緑
-                            in 100 until 168 -> nowBoardPuyoColor[row][i % 8] = 7           // 固ぷよ
-                            in 168 until 220 -> nowBoardPuyoColor[row][i % 8] = 6           // おじゃま
-                            else             -> nowBoardPuyoColor[row][i % 8] = 5           // 紫
+                            in   0 until 100 -> nowBoardPuyoColor[i] = 3           // 緑
+                            in 100 until 168 -> nowBoardPuyoColor[i] = 7           // 固ぷよ
+                            in 168 until 220 -> nowBoardPuyoColor[i] = 6           // おじゃま
+                            else             -> nowBoardPuyoColor[i] = 5           // 紫
                         }
                     else ->
                         when (colorBlue) {
                             in   0 until 135 ->
                                 when (colorGreen) {
-                                    in   0 until 135 -> nowBoardPuyoColor[row][i % 8] = 1   // 赤
-                                    else             -> nowBoardPuyoColor[row][i % 8] = 4   // 黄
+                                    in   0 until 135 -> nowBoardPuyoColor[i] = 1   // 赤
+                                    else             -> nowBoardPuyoColor[i] = 4   // 黄
                                 }
                             in 135 ..    255 ->
                                 when (colorGreen) {
-                                    in   0 until 200 -> nowBoardPuyoColor[row][i % 8] = 8   // ハート
-                                    else             -> nowBoardPuyoColor[row][i % 8] = 16  // プリズム
+                                    in   0 until 200 -> nowBoardPuyoColor[i] = 8   // ハート
+                                    else             -> nowBoardPuyoColor[i] = 16  // プリズム
                                 }
                         }
                 }
             }
         }
-        for (i in 0 until 6) {
-            Log.d("now   Color...", "${nowBoardPuyoColor[i][0]} ${nowBoardPuyoColor[i][1]} ${nowBoardPuyoColor[i][2]} ${nowBoardPuyoColor[i][3]} ${nowBoardPuyoColor[i][4]} ${nowBoardPuyoColor[i][5]} ${nowBoardPuyoColor[i][6]} ${nowBoardPuyoColor[i][7]}")
+        for (h in 0 until 6) {
+            Log.d("now   Color...", "${nowBoardPuyoColor[h*8]} ${nowBoardPuyoColor[h*8+1]} ${nowBoardPuyoColor[h*8+2]} ${nowBoardPuyoColor[h*8+3]} ${nowBoardPuyoColor[h*8+4]} ${nowBoardPuyoColor[h*8+5]} ${nowBoardPuyoColor[h*8+6]} ${nowBoardPuyoColor[h*8+7]}")
         }
     }
 
