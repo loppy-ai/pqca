@@ -104,8 +104,8 @@ class Board(bitmap1: Bitmap, bitmap2: Bitmap){
                 }
             }
         }
-        Log.d("next  Color...", "${nextBoardPuyoColor[0]} ${nextBoardPuyoColor[1]} ${nextBoardPuyoColor[2]} ${nextBoardPuyoColor[3]} ${nextBoardPuyoColor[4]} ${nextBoardPuyoColor[5]} ${nextBoardPuyoColor[6]} ${nextBoardPuyoColor[7]}")
-        Log.d("border........","---------------")
+        Log.d("puyo next Color...", "${nextBoardPuyoColor[0]} ${nextBoardPuyoColor[1]} ${nextBoardPuyoColor[2]} ${nextBoardPuyoColor[3]} ${nextBoardPuyoColor[4]} ${nextBoardPuyoColor[5]} ${nextBoardPuyoColor[6]} ${nextBoardPuyoColor[7]}")
+        Log.d("puyo border.......","------------------")
     }
 
     // 盤面ごとの色情報→現在ぷよ種別
@@ -187,7 +187,7 @@ class Board(bitmap1: Bitmap, bitmap2: Bitmap){
             }
         }
         for (h in 0 until 6) {
-            Log.d("now   Color...", "${nowBoardPuyoColor[h*8]} ${nowBoardPuyoColor[h*8+1]} ${nowBoardPuyoColor[h*8+2]} ${nowBoardPuyoColor[h*8+3]} ${nowBoardPuyoColor[h*8+4]} ${nowBoardPuyoColor[h*8+5]} ${nowBoardPuyoColor[h*8+6]} ${nowBoardPuyoColor[h*8+7]}")
+            Log.d("puyo now  Color...", "${nowBoardPuyoColor[h*8]} ${nowBoardPuyoColor[h*8+1]} ${nowBoardPuyoColor[h*8+2]} ${nowBoardPuyoColor[h*8+3]} ${nowBoardPuyoColor[h*8+4]} ${nowBoardPuyoColor[h*8+5]} ${nowBoardPuyoColor[h*8+6]} ${nowBoardPuyoColor[h*8+7]}")
         }
     }
 
