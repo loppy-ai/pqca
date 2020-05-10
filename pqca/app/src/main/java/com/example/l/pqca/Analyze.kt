@@ -5,38 +5,47 @@ import android.util.Log
 class Analyze(next: IntArray, now: IntArray) {
     // initで分析して、フィールド変数に結果を入れる
     // Fragmentからそのフィールド変数にアクセスして結果を取得する
-
     init {
         pattern(next, now)
     }
 
-    private fun pattern(firstNext: IntArray, firstNow: IntArray) {
+    private fun pattern(argNext: IntArray, argNow: IntArray) {
+        var next = argNext
+        var now = argNow
         // パターン取得
         // val patterns = getPatterns()
         val patterns = Array(1){ intArrayOf(
             0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 1,
             0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 1
-        )}
+            0, 0, 0, 0, 0, 0, 0, 0
+        )} // forDebug
         // パターンの数だけループ
         for (pattern in patterns) {
             // おじゃまとなぞり消しが衝突しているか確認 してたら次のパターンへ
-            if (isCollision(firstNow, pattern)) continue
+            if (isCollision(now, pattern)) continue
+            outputNowLog(now)
             // なぞり消しの適用 なぞったところを0にする
-            val tracedNow = applyTrace(firstNow, pattern)
+            now = applyTrace(now, pattern)
+            outputNowLog(now)
             // なぞり消したぷよを落とす 落ちてなくなったところを-1にする
-            val droppedNow = dropNow(tracedNow)
-            outputNowLog(droppedNow)
+            now = dropNow(now)
+            outputNowLog(now)
 
-            // ここから連鎖終了までループ
-            // 結合チェック 消えたところを0にする
-            // 0がある ぷよを落とす 落ちてなくなったところを-1にする
-            // 0がない ネクストを落とす
-            // ネクストも落ちなくなったら連鎖終了
-
+            // 連鎖終了までループ
+            var isChaining = true
+            while (isChaining) {
+                // 結合チェック 消えたところを0にする
+                now = checkConnection(now)
+                outputNowLog(now)
+                // おじゃま・ハート・プリズムチェック 消えたところに隣接するものを処理する
+                // 0がある ぷよを落とす 落ちてなくなったところを-1にする
+                // 0がない ネクストを落とす
+                // ネクストも落ちなくなったら連鎖終了
+                isChaining = false
+            }
         }
     }
 
@@ -84,7 +93,7 @@ class Analyze(next: IntArray, now: IntArray) {
     }
 
     private fun dropNow(now: IntArray): IntArray {
-        // 0になっているところを落とす 落としたところは-1にする
+        // 0になっているところを落とす 落ちてなくなったところを-1にする
         // 効率重視のため右下から順番に見ていく
         for (ri in now.lastIndex downTo 0) {
             // 0以外は次を見る
@@ -93,7 +102,7 @@ class Analyze(next: IntArray, now: IntArray) {
             var target = ri - 8
             while (target >= 0) {
                 // TODO 複数個まとめて落とすと効率化できそう
-                // 1つ上が0以外だったら落として、1つ上を0にする
+                // 上が0以外だったら落として、1つ上を0にする
                 if (now[target] != 0) {
                     now[ri] = now[target]
                     now[target] = 0
@@ -102,9 +111,8 @@ class Analyze(next: IntArray, now: IntArray) {
                 // 1つ上が0だったら更に上を見る
                 target -= 8
             }
-            // -1にする
+            // 落ちてなくなったところを-1にする
             if (target < 0) {
-                // 一番上から自分までを-1にする
                 target += 8
                 while (target <= ri) {
                     now[target] = -1
@@ -112,8 +120,76 @@ class Analyze(next: IntArray, now: IntArray) {
                 }
             }
         }
-        // 落とした盤面を返す
         return now
+    }
+
+    private fun checkConnection(now: IntArray): IntArray{
+        // 確認用配列の生成
+        // 1:チェック済み（結合） 0:チェック済み（未結合） -1:未チェック -2:チェック中
+        var check = IntArray(48) {-1}
+        // 確認しなくてよいぷよがあるところの確認用配列をあらかじめ0にする
+        for (i in now.indices){
+            if ((now[i] == -1) or (now[i] == 6) or (now[i] == 7) or (now[i] == 8) or (now[i] == 16)) {
+                // 無、邪、固、ハート、プリズムは確認しなくてよいので0にする
+                check[i] = 0
+            }
+        }
+        // 結合チェック
+        for (i in check.indices) {
+            // 確定している場合は飛ばす
+            if ((check[i] == 0) or (check[i] == 1)) continue
+            val ret = recursionCheckConnection(i, check, now, 0)
+            check = ret.first
+            val connectCount = ret.second
+            // 結合していたところは-2を1にする
+            // TODO とくべつルール（あんどうりんごスキル）発動中の対応
+            if (connectCount >= 4) {
+                for (j in check.indices) {
+                    if (check[j] == -2) check[j] = 1
+                }
+            }
+            // 結合していないところは-2を0にする
+            else {
+                for (j in check.indices) {
+                    if (check[j] == -2) check[j] = 0
+                }
+            }
+        }
+        // 確認用配列が1になっている箇所の同じところのnowを0にする
+        for (i in check.indices) {
+            if (check[i] == 1) now[i] = 0
+        }
+        return now
+    }
+
+    private fun recursionCheckConnection(i: Int, argCheck: IntArray, now: IntArray, argConnectCount: Int): Pair<IntArray, Int> {
+        var check = argCheck
+        var connectCount = argConnectCount
+        // 確認中状態にする
+        check[i] = -2
+        // 結合カウントを増やす
+        connectCount += 1
+        if (i % 8 != 7) {
+            // 右がある
+            if ((check[i + 1] < 0) and ((now[i] % 10) == (now[i + 1] % 10))) {
+                // 右が未確定 かつ 右が同じ色(下1桁が同じ)
+                // 右について再帰処理
+                val ret = recursionCheckConnection(i + 1, check, now, connectCount)
+                check = ret.first
+                connectCount = ret.second
+            }
+        }
+        if (i < 40) {
+            // 下がある
+            if ((check[i + 8] < 0) and ((now[i] % 10) == (now[i + 8] % 10))) {
+                // 下が未確定 かつ 下が同じ色(下1桁が同じ)
+                // 下について再帰処理
+                val ret = recursionCheckConnection(i + 8, check, now, connectCount)
+                check = ret.first
+                connectCount = ret.second
+            }
+        }
+        return Pair(check, connectCount)
     }
 
     private fun outputLog(next: IntArray, now: IntArray) {
