@@ -4,7 +4,6 @@ import android.graphics.Bitmap
 import android.graphics.Color
 import android.util.Log
 import kotlin.math.abs
-import kotlin.math.max
 import kotlin.math.min
 
 class Board(bitmap1: Bitmap, bitmap2: Bitmap){
@@ -13,14 +12,17 @@ class Board(bitmap1: Bitmap, bitmap2: Bitmap){
 
     // インスタンス化した際にbitmapから盤面情報を生成する
     init {
-        val nextAndNow1 = initialize(bitmap1)
-        val nextAndNow2 = initialize(bitmap2)
-        convertNext(nextAndNow1.first, nextAndNow2.first)
-        convertNow(nextAndNow1.second, nextAndNow2.second)
+        val ret1 = extractRGBFromBitmap(bitmap1)
+        val ret2 = extractRGBFromBitmap(bitmap2)
+        convertRGBToNext(ret1.first, ret2.first)
+        convertRGBToNow(ret1.second, ret2.second)
     }
 
-    // 画像→盤面ごとの色情報
-    private fun initialize(bitmap: Bitmap): Pair<IntArray, IntArray> {
+    fun getNext(): IntArray = nextBoardPuyoColor
+    fun getNow(): IntArray = nowBoardPuyoColor
+
+    // 画像→盤面ごとの色情報抽出
+    private fun extractRGBFromBitmap(bitmap: Bitmap): Pair<IntArray, IntArray> {
         val width = bitmap.width
         val height = bitmap.height
         val pixels = IntArray(width * height)
@@ -42,14 +44,12 @@ class Board(bitmap1: Bitmap, bitmap2: Bitmap){
         return Pair(nextBoardPixelColor, nowBoardPixelColor)
     }
 
-    fun getNext(): IntArray = nextBoardPuyoColor
-    fun getNow(): IntArray = nowBoardPuyoColor
-
     // 盤面ごとの色情報→ネクストぷよ種別
-    private fun convertNext(nextBoardPixelColor1: IntArray, nextBoardPixelColor2: IntArray) {
+    private fun convertRGBToNext(nextBoardPixelColor1: IntArray, nextBoardPixelColor2: IntArray) {
         //  1:赤   2:青   3:緑   4:黄   5:紫
         //  6:邪   7:固
         // 11:赤C 12:青C 13:緑C 14:黄C 15:紫C
+        // TODO おじゃまぷよ・固ぷよの判定
         val checkArray = checkIsChance(nextBoardPixelColor1, nextBoardPixelColor2)
         for (i in nextBoardPixelColor1.indices) {
             if (checkArray[i]) {
@@ -109,7 +109,7 @@ class Board(bitmap1: Bitmap, bitmap2: Bitmap){
     }
 
     // 盤面ごとの色情報→現在ぷよ種別
-    private fun convertNow(nowBoardPixelColor1: IntArray, nowBoardPixelColor2: IntArray) {
+    private fun convertRGBToNow(nowBoardPixelColor1: IntArray, nowBoardPixelColor2: IntArray) {
         //  1:赤   2:青   3:緑   4:黄   5:紫
         //  6:邪   7:固   8:ハート
         // 11:赤C 12:青C 13:緑C 14:黄C 15:紫C 16:プリズム
